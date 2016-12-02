@@ -60,9 +60,6 @@ class HasManyOptions < AssocOptions
     @class_name.nil? ? "#{@name}".camelcase.singularize : @class_name
   end
 
-  def self_class_name
-    @self_class_name.camelcase.singularize
-  end
 end
 
 module Associatable

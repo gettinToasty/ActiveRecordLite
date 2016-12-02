@@ -17,7 +17,7 @@ class SQLObject
   def self.finalize!
     columns.each do |column|
 
-      define_method("#{column}") do
+      define_method(column) do
         self.attributes[column]
       end
 
@@ -32,25 +32,27 @@ class SQLObject
   end
 
   def self.table_name
-    @table_name = "#{self.to_s.split(/(?<!^)(?=[A-Z])/).map(&:downcase).join("_")}s"
+    @table_name = self.tableize
+  end
+
+  def self.tableize
+    if self.to_s[-1] == "y"
+      "#{self.to_s.split(/(?<!^)(?=[A-Z])/)[0...-1]
+                  .map(&:downcase).join('_')}ies"
+    else
+      "#{self.to_s.split(/(?<!^)(?=[A-Z])/).map(&:downcase).join('_')}s"
+    end
   end
 
   def self.all
-    hashes = DBConnection.execute(<<-SQL)
-      SELECT
-        #{table_name}.*
-      FROM
-        #{table_name}
-    SQL
-    parse_all(hashes)
+    all = DBConnection.execute("SELECT #{table_name}.* FROM #{table_name}")
+    parse_all(all)
   end
 
   def self.parse_all(results)
-    arr =[]
-    results.each do |result|
-      arr << self.new(result)
-    end
-    arr
+    objects = []
+    results.each { |result| objects << self.new(result) }
+    objects
   end
 
   def self.find(id)
